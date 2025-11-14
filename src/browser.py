@@ -83,7 +83,7 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 
 
-def layout(text):
+def layout(text, width):
     display_list = []
     cursor_x, cursor_y = HSTEP, VSTEP
 
@@ -94,7 +94,7 @@ def layout(text):
             continue
         display_list.append((cursor_x, cursor_y, c))
         cursor_x += HSTEP
-        if cursor_x >= WIDTH - HSTEP:
+        if cursor_x >= width - HSTEP:
             cursor_y += VSTEP
             cursor_x = HSTEP
 
@@ -103,30 +103,40 @@ def layout(text):
 
 class Browser:
     def __init__(self):
+        self.width = WIDTH
+        self.height = HEIGHT
+
         self.window = tkinter.Tk()
-        self.canvas = tkinter.Canvas(self.window, width=WIDTH, height=HEIGHT)
-        self.canvas.pack()
+        self.canvas = tkinter.Canvas(self.window, width=self.width, height=self.height)
+        self.canvas.pack(fill=tkinter.BOTH, expand=True)
         self.scroll = 0
 
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Button-4>", self.scrollup)
         self.window.bind("<Button-5>", self.scrolldown)
+        self.window.bind("<Configure>", self.on_resize)
 
     def load(self, url):
         body = url.request()
-        text = lex(body)
-        self.display_list = layout(text)
+        self.text = lex(body)
+        self.display_list = layout(self.text, self.width)
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
         for x, y, c in self.display_list:
-            if y > self.scroll + HEIGHT:
+            if y > self.scroll + self.height:
                 continue
             if y + VSTEP < self.scroll:
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c)
+
+    def on_resize(self, e):
+        self.width = e.width
+        self.height = e.height
+        self.display_list = layout(self.text, self.width)
+        self.draw()
 
     def scrollup(self, e):
         self.scroll -= SCROLL_STEP
