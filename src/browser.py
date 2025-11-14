@@ -121,6 +121,7 @@ class Browser:
         body = url.request()
         self.text = lex(body)
         self.display_list = layout(self.text, self.width)
+        self.set_max_scroll()
         self.draw()
 
     def draw(self):
@@ -136,7 +137,14 @@ class Browser:
         self.width = e.width
         self.height = e.height
         self.display_list = layout(self.text, self.width)
+        self.set_max_scroll()
         self.draw()
+
+    def set_max_scroll(self):
+        last_item = self.display_list[-1]
+        max_y = last_item[1]
+
+        self.max_scroll = (max_y + VSTEP) - self.height
 
     def scrollup(self, e):
         self.scroll -= SCROLL_STEP
@@ -146,6 +154,8 @@ class Browser:
 
     def scrolldown(self, e):
         self.scroll += SCROLL_STEP
+        if self.scroll > self.max_scroll:
+            self.scroll = self.max_scroll
         self.draw()
 
 
