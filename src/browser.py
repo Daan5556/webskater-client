@@ -8,12 +8,20 @@ from file import read_file
 
 class URL:
     def __init__(self, url):
+        if ":" not in url:
+            url = "about:blank"
+
         self.scheme, url = url.split(":")
 
-        assert self.scheme in ["http", "https", "file", "data"]
+        if self.scheme not in ["http", "https", "file", "data", "about"]:
+            self.scheme = "about"
+            return
 
         if self.scheme == "data":
             self.media_type, self.data = url.split(",")
+            return
+
+        if self.scheme == "about":
             return
 
         _, url = url.split("//")
@@ -40,6 +48,9 @@ class URL:
 
         if self.scheme == "data":
             return self.data
+
+        if self.scheme == "about":
+            return []
 
         s = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
@@ -141,6 +152,10 @@ class Browser:
         self.draw()
 
     def set_max_scroll(self):
+        if len(self.display_list) == 0:
+            self.max_scroll = 0
+            return
+
         last_item = self.display_list[-1]
         max_y = last_item[1]
 
@@ -176,5 +191,6 @@ def lex(body):
 if __name__ == "__main__":
     import sys
 
-    Browser().load(URL(sys.argv[1]))
+    url = sys.argv[1] if len(sys.argv) > 1 else "about:blank"
+    Browser().load(URL(url))
     tkinter.mainloop()
