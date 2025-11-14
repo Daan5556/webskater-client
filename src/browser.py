@@ -1,6 +1,8 @@
 import socket
 import ssl
 
+from data.headers import stringify_headers
+
 
 class URL:
     def __init__(self, url):
@@ -36,6 +38,7 @@ class URL:
 
         request = "GET {} HTTP/1.0\r\n".format(self.path)
         request += "Host: {}\r\n".format(self.host)
+        request += stringify_headers()
         request += "\r\n"
         s.send(request.encode("utf8"))
 
