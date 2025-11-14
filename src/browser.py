@@ -2,12 +2,14 @@ import socket
 import ssl
 
 from data.headers import stringify_headers
+from file import read_file
 
 
 class URL:
     def __init__(self, url):
         self.scheme, url = url.split("://")
-        assert self.scheme in ["http", "https"]
+
+        assert self.scheme in ["http", "https", "file"]
 
         if self.scheme == "http":
             self.port = 80
@@ -26,6 +28,9 @@ class URL:
             self.port = int(port)
 
     def request(self):
+        if self.scheme == "file":
+            return read_file(self.path)
+
         s = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
         )
