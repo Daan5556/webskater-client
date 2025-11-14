@@ -7,9 +7,15 @@ from file import read_file
 
 class URL:
     def __init__(self, url):
-        self.scheme, url = url.split("://")
+        self.scheme, url = url.split(":")
 
-        assert self.scheme in ["http", "https", "file"]
+        assert self.scheme in ["http", "https", "file", "data"]
+
+        if self.scheme == "data":
+            self.media_type, self.data = url.split(",")
+            return
+
+        _, url = url.split("//")
 
         if self.scheme == "http":
             self.port = 80
@@ -30,6 +36,9 @@ class URL:
     def request(self):
         if self.scheme == "file":
             return read_file(self.path)
+
+        if self.scheme == "data":
+            return self.data
 
         s = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
