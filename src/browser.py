@@ -8,7 +8,7 @@ from file import read_file
 
 class URL:
     def __init__(self, url):
-        self.scheme, url = url.split(":")
+        self.scheme, url = url.split(":", 1)
 
         assert self.scheme in ["http", "https", "file", "data"]
 
@@ -130,6 +130,11 @@ class Browser:
             if y > self.scroll + self.height:
                 continue
             if y + VSTEP < self.scroll:
+                continue
+            codepoint = hex(ord(c))
+            if codepoint == "0x1f600":
+                image = tkinter.PhotoImage(file="1F600.png")
+                self.canvas.create_image(x, y - self.scroll, image=image)
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c)
 
