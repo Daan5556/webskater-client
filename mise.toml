@@ -11,4 +11,4 @@ run = "python3 -m src.browser data:text/html,😀"
 run = "python -m unittest"
 
 [env]
-_.python.venv = ".venv"
+_.python.venv = { path = ".venv", create = true }
