@@ -1,4 +1,8 @@
 [tools]
 python = "latest"
+
 [tasks.web1]
 run = "python3 src/browser.py https://browser.engineering/examples/xiyouji.html"
+
+[env]
+_.python.venv = ".venv"
