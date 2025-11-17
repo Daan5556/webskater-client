@@ -137,6 +137,11 @@ class Browser:
 
     def draw(self):
         self.canvas.delete("all")
+        self.calculate_scroll_status()
+
+        if self.max_scroll != 0:
+            self.canvas.create_text(HSTEP, VSTEP, text=self.scroll_status)
+
         for x, y, c in self.display_list:
             if y > self.scroll + self.height:
                 continue
@@ -160,6 +165,13 @@ class Browser:
         max_y = last_item[1]
 
         self.max_scroll = (max_y + VSTEP) - self.height
+
+    def calculate_scroll_status(self):
+        if self.max_scroll == 0:
+            self.scroll_status = 100
+            return
+
+        self.scroll_status = round(self.scroll / self.max_scroll * 100)
 
     def scrollup(self, e):
         self.scroll -= SCROLL_STEP
