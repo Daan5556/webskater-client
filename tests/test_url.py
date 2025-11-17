@@ -8,3 +8,7 @@ class TestUrl(unittest.TestCase):
         url = URL("about:test")
 
         self.assertEqual(url.scheme, "about")
+
+    def test_invalid_protocol(self):
+        url = URL("invalid:test")
+        self.assertEqual(url.scheme, "about")
