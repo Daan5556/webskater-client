@@ -2,8 +2,8 @@ import socket
 import ssl
 import tkinter
 
-from data.headers import stringify_headers
-from file import read_file
+from .data.headers import stringify_headers
+from .file import read_file
 
 
 class URL:

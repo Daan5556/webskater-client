@@ -2,7 +2,10 @@
 python = "latest"
 
 [tasks.web1]
-run = "python3 src/browser.py https://browser.engineering/examples/xiyouji.html"
+run = "python3 -m src.browser https://browser.engineering/examples/xiyouji.html"
+
+[tasks.test]
+run = "python -m unittest"
 
 [env]
 _.python.venv = ".venv"
