@@ -2,18 +2,26 @@ import socket
 import ssl
 import tkinter
 
-from data.headers import stringify_headers
-from file import read_file
+from .data.headers import stringify_headers
+from .file import read_file
 
 
 class URL:
     def __init__(self, url):
+        if ":" not in url:
+            url = "about:blank"
+
         self.scheme, url = url.split(":", 1)
 
-        assert self.scheme in ["http", "https", "file", "data"]
+        if self.scheme not in ["http", "https", "file", "data", "about"]:
+            self.scheme = "about"
+            return
 
         if self.scheme == "data":
             self.media_type, self.data = url.split(",")
+            return
+
+        if self.scheme == "about":
             return
 
         _, url = url.split("//")
@@ -40,6 +48,9 @@ class URL:
 
         if self.scheme == "data":
             return self.data
+
+        if self.scheme == "about":
+            return []
 
         s = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
@@ -126,6 +137,11 @@ class Browser:
 
     def draw(self):
         self.canvas.delete("all")
+        self.calculate_scroll_status()
+
+        if self.max_scroll != 0:
+            self.canvas.create_text(HSTEP, VSTEP, text=self.scroll_status)
+
         for x, y, c in self.display_list:
             if y > self.scroll + self.height:
                 continue
@@ -146,10 +162,21 @@ class Browser:
         self.draw()
 
     def set_max_scroll(self):
+        if len(self.display_list) == 0:
+            self.max_scroll = 0
+            return
+
         last_item = self.display_list[-1]
         max_y = last_item[1]
 
         self.max_scroll = (max_y + VSTEP) - self.height
+
+    def calculate_scroll_status(self):
+        if self.max_scroll == 0:
+            self.scroll_status = 100
+            return
+
+        self.scroll_status = round(self.scroll / self.max_scroll * 100)
 
     def scrollup(self, e):
         self.scroll -= SCROLL_STEP
@@ -181,5 +208,6 @@ def lex(body):
 if __name__ == "__main__":
     import sys
 
-    Browser().load(URL(sys.argv[1]))
+    url = sys.argv[1] if len(sys.argv) > 1 else "about:blank"
+    Browser().load(URL(url))
     tkinter.mainloop()
