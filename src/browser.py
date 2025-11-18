@@ -149,7 +149,12 @@ class Browser:
                 continue
             codepoint = hex(ord(c))
             if codepoint == "0x1f600":
-                image = tkinter.PhotoImage(file="1F600.png")
+                if not hasattr(self, "emoji_images"):
+                    self.emoji_images = {}
+
+                self.emoji_images["1f600"] = tkinter.PhotoImage(file="1F600.png")
+
+                image = self.emoji_images["1f600"]
                 self.canvas.create_image(x, y - self.scroll, image=image)
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c)
