@@ -5,7 +5,7 @@ python = "latest"
 run = "python3 -m src.browser https://browser.engineering/examples/xiyouji.html"
 
 [tasks.web2]
-run = "python3 -m src.browser data:text/html,😀"
+run = "python3 -m src.browser 'data:text/html,this is an emoji: 😀'"
 
 [tasks.test]
 run = "python -m unittest"
