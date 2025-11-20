@@ -2,6 +2,8 @@ import socket
 import ssl
 import tkinter
 
+from src.emoji import get_emoji_data, is_emoji
+
 from .data.headers import stringify_headers
 from .file import read_file
 
@@ -147,16 +149,20 @@ class Browser:
                 continue
             if y + VSTEP < self.scroll:
                 continue
-            codepoint = hex(ord(c))
-            if codepoint == "0x1f600":
+
+            if is_emoji(c):
                 if not hasattr(self, "emoji_images"):
                     self.emoji_images = {}
 
-                self.emoji_images["1f600"] = tkinter.PhotoImage(file="1F600.png")
+                code, path = get_emoji_data(c)
 
-                image = self.emoji_images["1f600"]
+                if code not in self.emoji_images:
+                    self.emoji_images[code] = tkinter.PhotoImage(file=path)
+
+                image = self.emoji_images[code]
                 self.canvas.create_image(x, y - self.scroll, image=image)
                 continue
+
             self.canvas.create_text(x, y - self.scroll, text=c)
 
     def on_resize(self, e):
