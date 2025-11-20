@@ -1,11 +1,11 @@
 [tools]
 python = "latest"
 
-[tasks.web1]
+[tasks.journey_west]
 run = "python3 -m src.browser https://browser.engineering/examples/xiyouji.html"
 
-[tasks.web2]
-run = "python3 -m src.browser 'data:text/html,this is an emoji: 😀'"
+[tasks.emoji]
+run = "python3 -m src.browser 'data:text/html,😅🙃🥳🥺'"
 
 [tasks.test]
 run = "python -m unittest"
