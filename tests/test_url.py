@@ -25,3 +25,10 @@ class TestUrl(unittest.TestCase):
 
         self.assertEqual(url.scheme, "data")
         self.assertEqual(url.data, content)
+
+    def test_http_url(self):
+        url = URL("http://example.net")
+
+        self.assertEqual(url.scheme, "http")
+        self.assertEqual(url.path, "/")
+        self.assertEqual(url.port, 80)
