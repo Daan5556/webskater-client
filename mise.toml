@@ -2,10 +2,10 @@
 python = "latest"
 
 [tasks.journey_west]
-run = "python3 -m src.browser https://browser.engineering/examples/xiyouji.html"
+run = "python -m src.browser https://browser.engineering/examples/xiyouji.html"
 
 [tasks.emoji]
-run = "python3 -m src.browser 'data:text/html,😅🙃🥳🥺'"
+run = "python -m src.browser 'data:text/html,😅🙃🥳🥺'"
 
 [tasks.test]
 run = "python -m unittest"
