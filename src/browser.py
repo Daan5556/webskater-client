@@ -2,6 +2,7 @@ import socket
 import ssl
 import tkinter
 import tkinter.font
+from typing import Literal
 from dataclasses import dataclass
 
 from src.emoji import get_emoji_data, is_emoji
@@ -74,7 +75,7 @@ class URL:
 
         response = s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
-        version, status, explanation = statusline.split(" ", 2)
+        _, _, _ = statusline.split(" ", 2)  # version status explanation
 
         response_headers = {}
         while True:
@@ -103,11 +104,13 @@ class Layout:
         self.display_list = []
         self.cursor_x = HSTEP
         self.cursor_y = VSTEP
-        self.weight = "normal"
-        self.style = "roman"
+        self.style: Literal["roman", "italic"] = "roman"
+        self.weight: Literal["normal", "bold"] = "normal"
         self.size = 12
+        self.line = []
         for tok in tokens:
             self.token(tok)
+        self.flush()
 
     def token(self, tok):
         if isinstance(tok, Text):
@@ -129,16 +132,36 @@ class Layout:
             self.size += 4
         elif tok.tag == "/big":
             self.size -= 4
+        elif tok.tag == "br":
+            self.flush()
+        elif tok.tag == "/p":
+            self.flush()
+            self.cursor_y += VSTEP
 
     def word(self, word):
         font = tkinter.font.Font(size=self.size, slant=self.style, weight=self.weight)
         for word in word.split():
             w = font.measure(word)
             if self.cursor_x + w > WIDTH - HSTEP:
-                self.cursor_y += font.metrics("linespace") * 1.25
-                self.cursor_x = HSTEP
-            self.display_list.append((self.cursor_x, self.cursor_y, word, font))
+                self.flush()
+            self.line.append((self.cursor_x, word, font))
             self.cursor_x += w + font.measure(" ")
+
+    def flush(self):
+        if not self.line:
+            return
+        metrics = [font.metrics() for _, _, font in self.line]
+        max_ascent = max([metric["ascent"] for metric in metrics])
+        baseline = self.cursor_y + 1.25 * max_ascent
+        max_descent = max([metric["descent"] for metric in metrics])
+        self.cursor_y = baseline + 1.25 * max_descent
+
+        for x, word, font in self.line:
+            y = baseline - font.metrics("ascent")
+            self.display_list.append((x, y, word, font))
+
+        self.cursor_x = HSTEP
+        self.line = []
 
 
 class Browser:
@@ -209,13 +232,13 @@ class Browser:
 
         self.scroll_status = round(self.scroll / self.max_scroll * 100)
 
-    def scrollup(self, e):
+    def scrollup(self, _):
         self.scroll -= SCROLL_STEP
         if self.scroll < 0:
             self.scroll = 0
         self.draw()
 
-    def scrolldown(self, e):
+    def scrolldown(self, _):
         self.scroll += SCROLL_STEP
         if self.scroll > self.max_scroll:
             self.scroll = self.max_scroll
