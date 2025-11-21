@@ -1,6 +1,7 @@
 import socket
 import ssl
 import tkinter
+import tkinter.font
 
 from src.emoji import get_emoji_data, is_emoji
 
@@ -97,19 +98,18 @@ SCROLL_STEP = 100
 
 
 def layout(text, width):
+    font = tkinter.font.Font()
     display_list = []
     cursor_x, cursor_y = HSTEP, VSTEP
 
-    for c in text:
-        if c == "\n":
+    for word in text.split():
+        w = font.measure(word)
+        if cursor_x + w > WIDTH - HSTEP:
+            cursor_y += font.metrics("linespace") * 1.25
             cursor_x = HSTEP
-            cursor_y += VSTEP
-            continue
-        display_list.append((cursor_x, cursor_y, c))
-        cursor_x += HSTEP
-        if cursor_x >= width - HSTEP:
-            cursor_y += VSTEP
-            cursor_x = HSTEP
+
+        display_list.append((cursor_x, cursor_y, word))
+        cursor_x += w + font.measure(" ")
 
     return display_list
 
@@ -139,6 +139,8 @@ class Browser:
 
     def draw(self):
         self.canvas.delete("all")
+
+        font = tkinter.font.Font()
         self.calculate_scroll_status()
 
         if self.max_scroll != 0:
@@ -163,7 +165,7 @@ class Browser:
                 self.canvas.create_image(x, y - self.scroll, image=image)
                 continue
 
-            self.canvas.create_text(x, y - self.scroll, text=c)
+            self.canvas.create_text(x, y - self.scroll, text=c, font=font, anchor="nw")
 
     def on_resize(self, e):
         self.width = e.width
