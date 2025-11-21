@@ -13,5 +13,8 @@ run = "python -m src.browser https://browser.engineering/text.html"
 [tasks.test]
 run = "python -m unittest"
 
+[tasks.font_style]
+run = "python -m src.browser 'data:text/html,This is <b>bold</bold> and <i>Italic text</i>'"
+
 [env]
 _.python.venv = { path = ".venv", create = true }

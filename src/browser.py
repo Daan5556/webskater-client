@@ -2,6 +2,7 @@ import socket
 import ssl
 import tkinter
 import tkinter.font
+from dataclasses import dataclass
 
 from src.emoji import get_emoji_data, is_emoji
 
@@ -97,21 +98,38 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 
 
-def layout(text):
-    font = tkinter.font.Font()
-    display_list = []
-    cursor_x, cursor_y = HSTEP, VSTEP
+class Layout:
+    def __init__(self, tokens):
+        self.display_list = []
+        self.cursor_x = HSTEP
+        self.cursor_y = VSTEP
+        self.weight = "normal"
+        self.style = "roman"
+        for tok in tokens:
+            self.token(tok)
 
-    for word in text.split():
-        w = font.measure(word)
-        if cursor_x + w > WIDTH - HSTEP:
-            cursor_y += font.metrics("linespace") * 1.25
-            cursor_x = HSTEP
+    def token(self, tok):
+        if isinstance(tok, Text):
+            self.word(tok.text)
 
-        display_list.append((cursor_x, cursor_y, word))
-        cursor_x += w + font.measure(" ")
+        elif tok.tag == "i":
+            self.style = "italic"
+        elif tok.tag == "/i":
+            self.style = "roman"
+        elif tok.tag == "b":
+            self.weight = "bold"
+        elif tok.tag == "/b":
+            self.weight = "normal"
 
-    return display_list
+    def word(self, word):
+        font = tkinter.font.Font(size=16, slant=self.style, weight=self.weight)
+        for word in word.split():
+            w = font.measure(word)
+            if self.cursor_x + w > WIDTH - HSTEP:
+                self.cursor_y += font.metrics("linespace") * 1.25
+                self.cursor_x = HSTEP
+            self.display_list.append((self.cursor_x, self.cursor_y, word, font))
+            self.cursor_x += w + font.measure(" ")
 
 
 class Browser:
@@ -131,21 +149,20 @@ class Browser:
 
     def load(self, url):
         body = url.request()
-        self.text = lex(body)
-        self.display_list = layout(self.text)
+        tokens = lex(body)
+        self.display_list = Layout(tokens).display_list
         self.set_max_scroll()
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
 
-        font = tkinter.font.Font()
         self.calculate_scroll_status()
 
         if self.max_scroll != 0:
             self.canvas.create_text(HSTEP, VSTEP, text=self.scroll_status)
 
-        for x, y, c in self.display_list:
+        for x, y, c, font in self.display_list:
             if y > self.scroll + self.height:
                 continue
             if y + VSTEP < self.scroll:
@@ -196,18 +213,36 @@ class Browser:
         self.draw()
 
 
+@dataclass
+class Text:
+    text: str
+
+
+@dataclass
+class Tag:
+    tag: str
+
+
 def lex(body):
-    text = ""
+    out = []
+    buffer = ""
     in_tag = False
     for c in body:
         if c == "<":
             in_tag = True
+            if buffer:
+                out.append(Text(buffer))
+            buffer = ""
         elif c == ">":
             in_tag = False
-        elif not in_tag:
-            text += c
+            out.append(Tag(buffer))
+            buffer = ""
+        else:
+            buffer += c
+    if not in_tag and buffer:
+        out.append(Text(buffer))
 
-    return text
+    return out
 
 
 if __name__ == "__main__":
