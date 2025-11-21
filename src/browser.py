@@ -97,7 +97,7 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 
 
-def layout(text, width):
+def layout(text):
     font = tkinter.font.Font()
     display_list = []
     cursor_x, cursor_y = HSTEP, VSTEP
@@ -128,12 +128,11 @@ class Browser:
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Button-4>", self.scrollup)
         self.window.bind("<Button-5>", self.scrolldown)
-        self.window.bind("<Configure>", self.on_resize)
 
     def load(self, url):
         body = url.request()
         self.text = lex(body)
-        self.display_list = layout(self.text, self.width)
+        self.display_list = layout(self.text)
         self.set_max_scroll()
         self.draw()
 
@@ -166,13 +165,6 @@ class Browser:
                 continue
 
             self.canvas.create_text(x, y - self.scroll, text=c, font=font, anchor="nw")
-
-    def on_resize(self, e):
-        self.width = e.width
-        self.height = e.height
-        self.display_list = layout(self.text, self.width)
-        self.set_max_scroll()
-        self.draw()
 
     def set_max_scroll(self):
         if len(self.display_list) == 0:
