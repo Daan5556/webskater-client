@@ -19,5 +19,8 @@ run = "python -m unittest"
 [tasks.font_style]
 run = "python -m src.browser 'data:text/html,This is <b>bold</b> and <i>Italic text</i>'"
 
+[tasks.parser]
+run = "python -m src.browser https://browser.engineering/html.html"
+
 [env]
 _.python.venv = { path = ".venv", create = true }
