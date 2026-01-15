@@ -317,7 +317,24 @@ class HTMLParser:
     def parse(self):
         text = ""
         in_tag = False
-        for c in self.body:
+        in_comment = False
+        i = 0
+        while i < len(self.body):
+            c = self.body[i]
+            if in_comment:
+                if self.body.startswith("-->", i):
+                    in_comment = False
+                    i += 3
+                    continue
+                i += 1
+                continue
+            if not in_comment and not in_tag and self.body.startswith("<!--", i):
+                if text:
+                    self.add_text(text)
+                    text = ""
+                in_comment = True
+                i += 4
+                continue
             if c == "<":
                 in_tag = True
                 if text:
@@ -329,6 +346,9 @@ class HTMLParser:
                 text = ""
             else:
                 text += c
+
+            i += 1
+
         if not in_tag and text:
             self.add_text(text)
 
@@ -361,7 +381,7 @@ class Browser:
         self.nodes = HTMLParser(body).parse()
         self.display_list = Layout(self.nodes).display_list
         self.set_max_scroll()
-        print(print_tree(self.nodes))
+        print_tree(self.nodes)
         self.draw()
 
     def draw(self):

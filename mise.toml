@@ -22,5 +22,8 @@ run = "python -m src.browser 'data:text/html,This is <b>bold</b> and <i>Italic t
 [tasks.parser]
 run = "python -m src.browser https://browser.engineering/html.html"
 
+[tasks.comment]
+run = 'python -m src.browser "data:text/html,<p>cool markup</p><!-- cool comment -->"'
+
 [env]
 _.python.venv = { path = ".venv", create = true }
