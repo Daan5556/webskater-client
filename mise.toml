@@ -11,7 +11,7 @@ run = "python -m src.browser 'data:text/html,😅🙃🥳🥺'"
 run = "python -m src.browser https://browser.engineering/text.html"
 
 [tasks.size]
-run = "python -m src.browser 'data:text/html,this is <big>BIG</big> and <small>small</small> text'"
+run = "python -m src.browser 'data:text/html,<html>this is <big>BIG</big> and <small>small</small> text</html>'"
 
 [tasks.test]
 run = "python -m unittest"
