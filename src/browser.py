@@ -381,7 +381,6 @@ class Browser:
         self.nodes = HTMLParser(body).parse()
         self.display_list = Layout(self.nodes).display_list
         self.set_max_scroll()
-        print_tree(self.nodes)
         self.draw()
 
     def draw(self):
