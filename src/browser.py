@@ -6,8 +6,6 @@ import tkinter.font
 from typing import Dict
 from dataclasses import dataclass, field
 
-from src.emoji import get_emoji_data, is_emoji
-
 from .data.headers import stringify_headers
 from .file import read_file
 

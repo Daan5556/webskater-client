@@ -4,9 +4,6 @@ python = "latest"
 [tasks.journey_west]
 run = "python -m src.browser https://browser.engineering/examples/xiyouji.html"
 
-[tasks.emoji]
-run = "python -m src.browser 'data:text/html,😅🙃🥳🥺'"
-
 [tasks.text]
 run = "python -m src.browser https://browser.engineering/text.html"
 
