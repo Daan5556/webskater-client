@@ -3,7 +3,7 @@ import socket
 import ssl
 import tkinter
 import tkinter.font
-from typing import Dict, Literal
+from typing import Dict
 from dataclasses import dataclass, field
 
 from src.emoji import get_emoji_data, is_emoji
@@ -133,17 +133,29 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 
 
-class Layout:
-    def __init__(self, tokens):
+class BlockLayout:
+    def __init__(self, node, parent, previous):
+        self.node = node
+        self.parent = parent
+        self.previous = previous
+        self.children = []
+        self.x = None
+        self.y = None
+        self.width = None
+        self.height = None
         self.display_list = []
-        self.cursor_x = HSTEP
-        self.cursor_y = VSTEP
-        self.style: Literal["roman", "italic"] = "roman"
-        self.weight: Literal["normal", "bold"] = "normal"
-        self.size = 12
-        self.line = []
-        self.recurse(tokens)
-        self.flush()
+
+    def __repr__(self):
+        return "BlockLayout[{}](x={}, y={}, width={}, height={}, node={})".format(
+            self.layout_mode(), self.x, self.y, self.width, self.height, self.node
+        )
+
+    def layout_intermediate(self):
+        previous = None
+        for child in self.node.children:
+            next = BlockLayout(child, self, previous)
+            self.children.append(next)
+            previous = next
 
     def open_tag(self, tag):
         if tag == "i":
@@ -189,7 +201,7 @@ class Layout:
         font = get_font(self.size, self.weight, self.style)
         for word in word.split():
             w = font.measure(word)
-            if self.cursor_x + w > WIDTH - HSTEP:
+            if self.cursor_x + w > self.width:
                 self.flush()
             self.line.append((self.cursor_x, word, font))
             self.cursor_x += w + font.measure(" ")
@@ -201,14 +213,133 @@ class Layout:
         max_ascent = max([metric["ascent"] for metric in metrics])
         baseline = self.cursor_y + 1.25 * max_ascent
         max_descent = max([metric["descent"] for metric in metrics])
+        self.cursor_x = 0
         self.cursor_y = baseline + 1.25 * max_descent
 
-        for x, word, font in self.line:
-            y = baseline - font.metrics("ascent")
+        for rel_x, word, font in self.line:
+            x = self.x + rel_x
+            y = self.y + baseline - font.metrics("ascent")
             self.display_list.append((x, y, word, font))
 
         self.cursor_x = HSTEP
         self.line = []
+
+    BLOCK_ELEMENTS = [
+        "html",
+        "body",
+        "article",
+        "section",
+        "nav",
+        "aside",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "hgroup",
+        "header",
+        "footer",
+        "address",
+        "p",
+        "hr",
+        "pre",
+        "blockquote",
+        "ol",
+        "ul",
+        "menu",
+        "li",
+        "dl",
+        "dt",
+        "dd",
+        "figure",
+        "figcaption",
+        "main",
+        "div",
+        "table",
+        "form",
+        "fieldset",
+        "legend",
+        "details",
+        "summary",
+    ]
+
+    def layout_mode(self):
+        if isinstance(self.node, Text):
+            return "inline"
+        elif any(
+            [
+                isinstance(child, Element) and child.tag in self.BLOCK_ELEMENTS
+                for child in self.node.children
+            ]
+        ):
+            return "block"
+        elif self.node.children:
+            return "inline"
+        else:
+            return "block"
+
+    def layout(self):
+        self.x = self.parent.x
+        self.width = self.parent.width
+
+        if self.previous:
+            self.y = self.previous.y + self.previous.height
+        else:
+            self.y = self.parent.y
+
+        mode = self.layout_mode()
+        if mode == "block":
+            previous = None
+            for child in self.node.children:
+                next = BlockLayout(child, self, previous)
+                self.children.append(next)
+                previous = next
+        else:
+            self.cursor_x = 0
+            self.cursor_y = 0
+            self.weight = "normal"
+            self.style = "roman"
+            self.size = 12
+
+            self.line = []
+            self.recurse(self.node)
+            self.flush()
+
+        for child in self.children:
+            child.layout()
+
+        if mode == "block":
+            self.height = sum([child.height for child in self.children])
+        else:
+            self.height = self.cursor_y
+
+    def paint(self):
+        return self.display_list
+
+
+class DocumentLayout:
+    def __init__(self, node):
+        self.node = node
+        self.parent = None
+        self.children = []
+        self.x = None
+        self.y = None
+        self.width = None
+        self.height = None
+
+    def layout(self):
+        child = BlockLayout(self.node, self, None)
+        self.children.append(child)
+
+        self.width = WIDTH - 2 * HSTEP
+        self.x = HSTEP
+        self.y = VSTEP
+        child.layout()
+        self.height = child.height
+
+    def paint(self):
+        return []
 
 
 class HTMLParser:
@@ -361,6 +492,13 @@ def print_tree(node, indent=0):
         print_tree(child, indent + 2)
 
 
+def paint_tree(layout_object, display_list):
+    display_list.extend(layout_object.paint())
+
+    for child in layout_object.children:
+        paint_tree(child, display_list)
+
+
 class Browser:
     def __init__(self):
         self.width = WIDTH
@@ -379,7 +517,11 @@ class Browser:
     def load(self, url):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
-        self.display_list = Layout(self.nodes).display_list
+        self.document = DocumentLayout(self.nodes)
+        self.document.layout()
+        # print_tree(self.document)
+        self.display_list = []
+        paint_tree(self.document, self.display_list)
         self.set_max_scroll()
         self.draw()
 

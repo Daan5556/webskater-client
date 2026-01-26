@@ -13,6 +13,9 @@ run = "python -m src.browser https://browser.engineering/text.html"
 [tasks.size]
 run = "python -m src.browser 'data:text/html,<html>this is <big>BIG</big> and <small>small</small> text</html>'"
 
+[tasks.blocks]
+run = "python -m src.browser 'data:text/html,<p>This is block 1</p><p>This is block 2</p>'"
+
 [tasks.test]
 run = "python -m unittest"
 
