@@ -314,7 +314,10 @@ class BlockLayout:
 
     def paint(self):
         cmds = []
-        if isinstance(self.node, Element) and self.node.tag == "pre":
+        if isinstance(self.node, Element) and (
+            self.node.tag == "pre"
+            or (self.node.tag == "nav" and self.node.attributes.get("class") == "links")
+        ):
             assert self.x is not None
             assert self.y is not None
             x2 = self.x + self.width

@@ -25,5 +25,8 @@ run = "python -m src.browser https://browser.engineering/html.html"
 [tasks.comment]
 run = 'python -m src.browser "data:text/html,<p>cool markup</p><!-- cool comment -->"'
 
+[tasks.links]
+run = 'python -m src.browser "data:text/html,<nav>This should have no background</nav><nav class="links">This shoud have a gray background</nav>"'
+
 [env]
 _.python.venv = { path = ".venv", create = true }
