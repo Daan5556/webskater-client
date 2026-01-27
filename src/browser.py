@@ -6,6 +6,7 @@ import tkinter.font
 from typing import Dict
 from dataclasses import dataclass, field
 
+from src.data import errors
 from src.data.entities import entities
 
 from .data.headers import stringify_headers
@@ -14,6 +15,7 @@ from .file import read_file
 
 class URL:
     def __init__(self, url):
+        self.error = None
         if ":" not in url:
             url = "about:blank"
 
@@ -24,13 +26,20 @@ class URL:
             return
 
         if self.scheme == "data":
-            self.media_type, self.data = url.split(",")
+            try:
+                self.media_type, self.data = url.split(",")
+            except ValueError:
+                self.error = errors.invalid_url
             return
 
         if self.scheme == "about":
             return
 
-        _, url = url.split("//")
+        try:
+            _, url = url.split("//", 1)
+        except ValueError:
+            self.error = errors.invalid_url
+            return
 
         if self.scheme == "http":
             self.port = 80
@@ -49,6 +58,8 @@ class URL:
             self.port = int(port)
 
     def request(self):
+        if self.error:
+            return self.error
         if self.scheme == "file":
             return read_file(self.path)
 
