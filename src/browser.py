@@ -489,7 +489,7 @@ class HTMLParser:
                 in_tag = False
                 self.add_tag(text)
                 text = ""
-            elif c == "&":
+            elif not in_tag and c == "&":
                 # Character reference parser
                 matches = []
                 for key in entities:
@@ -497,7 +497,11 @@ class HTMLParser:
                         matches.append(key)
                 longest_match = max(matches, key=len, default=None)
                 if longest_match:
-                    text += entities.get(longest_match).get("characters")
+                    char_ref = entities.get(longest_match)
+                    assert char_ref is not None
+                    characters = char_ref.get("characters")
+                    assert isinstance(characters, str)
+                    text += characters
                     i += len(longest_match)
                     continue
                 else:
