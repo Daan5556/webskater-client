@@ -6,6 +6,8 @@ import tkinter.font
 from typing import Dict
 from dataclasses import dataclass, field
 
+from src.data.entities import entities
+
 from .data.headers import stringify_headers
 from .file import read_file
 
@@ -487,6 +489,24 @@ class HTMLParser:
                 in_tag = False
                 self.add_tag(text)
                 text = ""
+            elif not in_tag and c == "&":
+                # Character reference parser
+                matches = []
+                for key in entities:
+                    if self.body.startswith(key, i):
+                        matches.append(key)
+                longest_match = max(matches, key=len, default=None)
+                if longest_match:
+                    char_ref = entities.get(longest_match)
+                    assert char_ref is not None
+                    characters = char_ref.get("characters")
+                    assert isinstance(characters, str)
+                    text += characters
+                    i += len(longest_match)
+                    continue
+                else:
+                    text += c
+
             else:
                 text += c
 

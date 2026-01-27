@@ -28,5 +28,16 @@ run = 'python -m src.browser "data:text/html,<p>cool markup</p><!-- cool comment
 [tasks.links]
 run = 'python -m src.browser "data:text/html,<nav>This should have no background</nav><nav class="links">This shoud have a gray background</nav>"'
 
+[tasks.entities]
+run = '''
+python -m src.browser "data:text/html,
+<p>This should be a less then char: &lt;</p>
+<p>This should just be an amp: &</p> 
+<p>This should be a copyright: &copy</p> 
+<p>This should be a copyright: &copy;</p> 
+<p>This should be a heart: &hearts;</p> 
+<p>This should be a div src: &lt;div&gt;</p>" 
+'''
+
 [env]
 _.python.venv = { path = ".venv", create = true }
