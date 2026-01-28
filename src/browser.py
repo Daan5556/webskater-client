@@ -344,7 +344,7 @@ class BlockLayout:
 
 
 class DocumentLayout:
-    def __init__(self, node):
+    def __init__(self, node, window_width):
         self.node = node
         self.parent = None
         self.children = []
@@ -352,12 +352,13 @@ class DocumentLayout:
         self.y = None
         self.width = None
         self.height = None
+        self.window_width = window_width
 
     def layout(self):
         child = BlockLayout(self.node, self, None)
         self.children.append(child)
 
-        self.width = WIDTH - 2 * HSTEP
+        self.width = self.window_width - 2 * HSTEP
         self.x = HSTEP
         self.y = VSTEP
         child.layout()
@@ -589,11 +590,15 @@ class Browser:
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Button-4>", self.scrollup)
         self.window.bind("<Button-5>", self.scrolldown)
+        self.window.bind("<Configure>", self.configure)
 
     def load(self, url):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
-        self.document = DocumentLayout(self.nodes)
+        self.relayout()
+
+    def relayout(self):
+        self.document = DocumentLayout(self.nodes, self.width)
         self.document.layout()
         # print_tree(self.document)
         self.display_list = []
@@ -604,7 +609,7 @@ class Browser:
         self.canvas.delete("all")
 
         for cmd in self.display_list:
-            if cmd.top > self.scroll + HEIGHT:
+            if cmd.top > self.scroll + self.height:
                 continue
             if cmd.bottom < self.scroll:
                 continue
@@ -618,9 +623,16 @@ class Browser:
 
     def scrolldown(self, _):
         assert self.document.height is not None
-        max_y = max(self.document.height + 2 * VSTEP - HEIGHT, 0)
+        max_y = max(self.document.height + 2 * VSTEP - self.height, 0)
         self.scroll = min(self.scroll + SCROLL_STEP, max_y)
         self.draw()
+
+    def configure(self, e):
+        if e.width == self.width and e.height == self.height:
+            return
+        self.width = e.width
+        self.height = e.height
+        self.relayout()
 
 
 if __name__ == "__main__":
