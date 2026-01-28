@@ -582,7 +582,7 @@ class Browser:
         self.height = HEIGHT
 
         self.window = tkinter.Tk()
-        self.canvas = tkinter.Canvas(self.window, width=self.width, height=self.height)
+        self.canvas = tkinter.Canvas(self.window)
         self.canvas.pack(fill=tkinter.BOTH, expand=True)
         self.scroll = 0
 
@@ -590,7 +590,7 @@ class Browser:
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Button-4>", self.scrollup)
         self.window.bind("<Button-5>", self.scrolldown)
-        self.window.bind("<Configure>", self.configure)
+        self.canvas.bind("<Configure>", self.configure)
 
     def load(self, url):
         body = url.request()
