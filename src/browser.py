@@ -592,6 +592,10 @@ class Browser:
         self.window.bind("<Button-5>", self.scrolldown)
         self.canvas.bind("<Configure>", self.configure)
 
+    def max_scroll_y(self):
+        assert self.document.height is not None
+        return max(self.document.height + 2 * VSTEP - self.height, 0)
+
     def load(self, url):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
@@ -603,6 +607,9 @@ class Browser:
         # print_tree(self.document)
         self.display_list = []
         paint_tree(self.document, self.display_list)
+        max_y = self.max_scroll_y()
+        if self.scroll > max_y:
+            self.scroll = max_y
         self.draw()
 
     def draw(self):
@@ -622,8 +629,7 @@ class Browser:
         self.draw()
 
     def scrolldown(self, _):
-        assert self.document.height is not None
-        max_y = max(self.document.height + 2 * VSTEP - self.height, 0)
+        max_y = self.max_scroll_y()
         self.scroll = min(self.scroll + SCROLL_STEP, max_y)
         self.draw()
 
