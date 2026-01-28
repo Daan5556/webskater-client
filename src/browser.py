@@ -328,6 +328,7 @@ class BlockLayout:
     def paint(self):
         cmds = []
         if isinstance(self.node, Element) and (
+            # TEMPORARY STYLES
             self.node.tag == "pre"
             or (self.node.tag == "nav" and self.node.attributes.get("class") == "links")
         ):
