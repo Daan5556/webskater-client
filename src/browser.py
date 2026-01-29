@@ -161,13 +161,6 @@ class BlockLayout:
             self.layout_mode(), self.x, self.y, self.width, self.height, self.node
         )
 
-    def layout_intermediate(self):
-        previous = None
-        for child in self.node.children:
-            next = BlockLayout(child, self, previous)
-            self.children.append(next)
-            previous = next
-
     def open_tag(self, tag):
         if tag == "i":
             self.style = "italic"
@@ -303,6 +296,8 @@ class BlockLayout:
         if mode == "block":
             previous = None
             for child in self.node.children:
+                if isinstance(child, Element) and child.tag == "head":
+                    continue
                 next = BlockLayout(child, self, previous)
                 self.children.append(next)
                 previous = next
@@ -600,6 +595,7 @@ class Browser:
     def load(self, url):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
+        # print_tree(self.nodes)
         self.relayout()
 
     def relayout(self):
