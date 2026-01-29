@@ -27,7 +27,7 @@ class URL:
 
         if self.scheme == "data":
             try:
-                self.media_type, self.data = url.split(",")
+                self.media_type, self.data = url.split(",")  # noqa: vulture
             except ValueError:
                 self.error = errors.invalid_url
             return
@@ -186,10 +186,6 @@ class BlockLayout:
         elif tag == "/p":
             self.flush()
             self.cursor_y += VSTEP
-
-    def token(self, tok):
-        if isinstance(tok, Text):
-            self.word(tok.text)
 
     def recurse(self, tree):
         if isinstance(tree, Text):

@@ -1,6 +1,12 @@
 [tools]
 python = "latest"
 
+[tasks.test]
+run = "python -m unittest"
+
+[tasks.vulture]
+run = "vulture src/"
+
 [tasks.journey_west]
 run = "python -m src.browser https://browser.engineering/examples/xiyouji.html"
 
@@ -12,9 +18,6 @@ run = "python -m src.browser 'data:text/html,<html>this is <big>BIG</big> and <s
 
 [tasks.blocks]
 run = "python -m src.browser 'data:text/html,<p>This is block 1</p><p>This is block 2</p>'"
-
-[tasks.test]
-run = "python -m unittest"
 
 [tasks.font_style]
 run = "python -m src.browser 'data:text/html,This is <b>bold</b> and <i>Italic text</i>'"
