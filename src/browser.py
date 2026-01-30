@@ -142,6 +142,45 @@ def get_font(size, weight, style):
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
+BLOCK_ELEMENTS = [
+    "html",
+    "body",
+    "article",
+    "section",
+    "nav",
+    "aside",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hgroup",
+    "header",
+    "footer",
+    "address",
+    "p",
+    "hr",
+    "pre",
+    "blockquote",
+    "ol",
+    "ul",
+    "menu",
+    "li",
+    "dl",
+    "dt",
+    "dd",
+    "figure",
+    "figcaption",
+    "main",
+    "div",
+    "table",
+    "form",
+    "fieldset",
+    "legend",
+    "details",
+    "summary",
+]
 
 
 class BlockLayout:
@@ -161,114 +200,12 @@ class BlockLayout:
             self.layout_mode(), self.x, self.y, self.width, self.height, self.node
         )
 
-    def open_tag(self, tag):
-        if tag == "i":
-            self.style = "italic"
-        elif tag == "b":
-            self.weight = "bold"
-        elif tag == "small":
-            self.size -= 2
-        elif tag == "big":
-            self.size += 4
-        elif tag == "br":
-            self.flush()
-
-    def close_tag(self, tag):
-        if tag == "i":
-            self.style = "roman"
-        elif tag == "b":
-            self.weight = "normal"
-        elif tag == "small":
-            self.size += 2
-        elif tag == "big":
-            self.size -= 4
-            self.flush()
-        elif tag == "p":
-            self.flush()
-            self.cursor_y += VSTEP
-
-    def recurse(self, tree):
-        if isinstance(tree, Text):
-            for word in tree.text.split():
-                self.word(word)
-        else:
-            self.open_tag(tree.tag)
-            for child in tree.children:
-                self.recurse(child)
-            self.close_tag(tree.tag)
-
-    def word(self, word):
-        font = get_font(self.size, self.weight, self.style)
-        w = font.measure(word)
-        if self.cursor_x + w > self.width:
-            self.flush()
-        self.line.append((self.cursor_x, word, font))
-        self.cursor_x += w + font.measure(" ")
-
-    def flush(self):
-        if not self.line:
-            return
-        metrics = [font.metrics() for _, _, font in self.line]
-        max_ascent = max([metric["ascent"] for metric in metrics])
-        baseline = self.cursor_y + 1.25 * max_ascent
-        max_descent = max([metric["descent"] for metric in metrics])
-        self.cursor_x = 0
-        self.cursor_y = baseline + 1.25 * max_descent
-
-        for rel_x, word, font in self.line:
-            x = self.x + rel_x
-            y = self.y + baseline - font.metrics("ascent")
-            self.display_list.append((x, y, word, font))
-
-        self.cursor_x = HSTEP
-        self.line = []
-
-    BLOCK_ELEMENTS = [
-        "html",
-        "body",
-        "article",
-        "section",
-        "nav",
-        "aside",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "hgroup",
-        "header",
-        "footer",
-        "address",
-        "p",
-        "hr",
-        "pre",
-        "blockquote",
-        "ol",
-        "ul",
-        "menu",
-        "li",
-        "dl",
-        "dt",
-        "dd",
-        "figure",
-        "figcaption",
-        "main",
-        "div",
-        "table",
-        "form",
-        "fieldset",
-        "legend",
-        "details",
-        "summary",
-    ]
-
     def layout_mode(self):
         if isinstance(self.node, Text):
             return "inline"
         elif any(
             [
-                isinstance(child, Element) and child.tag in self.BLOCK_ELEMENTS
+                isinstance(child, Element) and child.tag in BLOCK_ELEMENTS
                 for child in self.node.children
             ]
         ):
@@ -314,6 +251,68 @@ class BlockLayout:
             self.height = sum([child.height for child in self.children])
         else:
             self.height = self.cursor_y
+
+    def recurse(self, tree):
+        if isinstance(tree, Text):
+            for word in tree.text.split():
+                self.word(word)
+        else:
+            self.open_tag(tree.tag)
+            for child in tree.children:
+                self.recurse(child)
+            self.close_tag(tree.tag)
+
+    def open_tag(self, tag):
+        if tag == "i":
+            self.style = "italic"
+        elif tag == "b":
+            self.weight = "bold"
+        elif tag == "small":
+            self.size -= 2
+        elif tag == "big":
+            self.size += 4
+        elif tag == "br":
+            self.flush()
+
+    def close_tag(self, tag):
+        if tag == "i":
+            self.style = "roman"
+        elif tag == "b":
+            self.weight = "normal"
+        elif tag == "small":
+            self.size += 2
+        elif tag == "big":
+            self.size -= 4
+            self.flush()
+        elif tag == "p":
+            self.flush()
+            self.cursor_y += VSTEP
+
+    def flush(self):
+        if not self.line:
+            return
+        metrics = [font.metrics() for _, _, font in self.line]
+        max_ascent = max([metric["ascent"] for metric in metrics])
+        baseline = self.cursor_y + 1.25 * max_ascent
+        max_descent = max([metric["descent"] for metric in metrics])
+        self.cursor_x = 0
+        self.cursor_y = baseline + 1.25 * max_descent
+
+        for rel_x, word, font in self.line:
+            x = self.x + rel_x
+            y = self.y + baseline - font.metrics("ascent")
+            self.display_list.append((x, y, word, font))
+
+        self.cursor_x = HSTEP
+        self.line = []
+
+    def word(self, word):
+        font = get_font(self.size, self.weight, self.style)
+        w = font.measure(word)
+        if self.cursor_x + w > self.width:
+            self.flush()
+        self.line.append((self.cursor_x, word, font))
+        self.cursor_x += w + font.measure(" ")
 
     def paint(self):
         cmds = []
