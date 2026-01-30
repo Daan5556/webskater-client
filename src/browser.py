@@ -174,16 +174,16 @@ class BlockLayout:
             self.flush()
 
     def close_tag(self, tag):
-        if tag == "/i":
+        if tag == "i":
             self.style = "roman"
-        elif tag == "/b":
+        elif tag == "b":
             self.weight = "normal"
-        elif tag == "/small":
+        elif tag == "small":
             self.size += 2
-        elif tag == "/big":
+        elif tag == "big":
             self.size -= 4
             self.flush()
-        elif tag == "/p":
+        elif tag == "p":
             self.flush()
             self.cursor_y += VSTEP
 
@@ -345,6 +345,9 @@ class DocumentLayout:
         self.width = None
         self.height = None
         self.window_width = window_width
+
+    def __repr__(self):
+        return "DocumentLayout[]()"
 
     def layout(self):
         child = BlockLayout(self.node, self, None)
