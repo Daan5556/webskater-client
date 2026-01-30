@@ -181,6 +181,30 @@ BLOCK_ELEMENTS = [
     "details",
     "summary",
 ]
+HEAD_TAGS = [
+    "base",
+    "basefont",
+    "bgsound",
+    "noscript",
+    "link",
+    "meta",
+    "title",
+    "style",
+    "script",
+]
+
+
+def is_head_tag(node):
+    if isinstance(node, Element) and node.tag in HEAD_TAGS + ["head"]:
+        return True
+    parent = node.parent
+    while parent:
+        if parent.tag == "head":
+            return True
+
+        parent = parent.parent
+
+    return False
 
 
 class BlockLayout:
@@ -228,7 +252,7 @@ class BlockLayout:
         if mode == "block":
             previous = None
             for child in self.node.children:
-                if isinstance(child, Element) and child.tag == "head":
+                if is_head_tag(child):
                     continue
                 next = BlockLayout(child, self, previous)
                 self.children.append(next)
@@ -253,6 +277,8 @@ class BlockLayout:
             self.height = self.cursor_y
 
     def recurse(self, tree):
+        if is_head_tag(tree):
+            return
         if isinstance(tree, Text):
             for word in tree.text.split():
                 self.word(word)
@@ -382,31 +408,17 @@ class HTMLParser:
             "wbr",
         ]
 
-    HEAD_TAGS = [
-        "base",
-        "basefont",
-        "bgsound",
-        "noscript",
-        "link",
-        "meta",
-        "title",
-        "style",
-        "script",
-    ]
-
     def implicit_tags(self, tag):
         while True:
             open_tags = [node.tag for node in self.unfinished]
             if open_tags == [] and tag != "html":
                 self.add_tag("html")
             elif open_tags == ["html"] and tag not in ["head", "body", "/html"]:
-                if tag in self.HEAD_TAGS:
+                if tag in HEAD_TAGS:
                     self.add_tag("head")
                 else:
                     self.add_tag("body")
-            elif (
-                open_tags == ["html", "head"] and tag not in ["/head"] + self.HEAD_TAGS
-            ):
+            elif open_tags == ["html", "head"] and tag not in ["/head"] + HEAD_TAGS:
                 self.add_tag("/head")
             else:
                 break
