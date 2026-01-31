@@ -34,6 +34,16 @@ run = 'python -m src.browser "data:text/html,<p>cool markup</p><!-- cool comment
 [tasks.links]
 run = 'python -m src.browser "data:text/html,<nav>This should have no background</nav><nav class="links">This shoud have a gray background</nav>"'
 
+[tasks.list]
+run = '''python -m src.browser "data:text/html,
+<ul>
+  <li><b>this</b> is the first item</li>
+  <li>this is <b>the</b> second item</li>
+  <li>this is <b>the</b> second item</li>
+</ul>
+<p>This is a para</p>"
+'''
+
 [tasks.entities]
 run = '''
 python -m src.browser "data:text/html,
