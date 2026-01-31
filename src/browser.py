@@ -362,7 +362,7 @@ class BlockLayout:
         assert self.height is not None
         cmds = []
         if self.list_item and self.center_line:
-            assert self.list_item_x
+            assert self.list_item_x is not None
             x1 = self.list_item_x + BULLET_GUTTER / 2
             y1 = self.y + self.center_line - (BULLET_SIZE / 2)
             cmds.append(DrawRect(x1, y1, x1 + BULLET_SIZE, y1 + BULLET_SIZE, "black"))
