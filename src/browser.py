@@ -141,6 +141,8 @@ def get_font(size, weight, style):
 
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 13, 18
+BULLET_GUTTER = VSTEP * 1.5
+BULLET_SIZE = 3
 SCROLL_STEP = 100
 BLOCK_ELEMENTS = [
     "html",
@@ -217,6 +219,9 @@ class BlockLayout:
         self.y = None
         self.width = None
         self.height = None
+        self.list_item = False
+        self.list_item_x = None
+        self.center_line = None
         self.display_list = []
 
     def __repr__(self):
@@ -242,6 +247,12 @@ class BlockLayout:
     def layout(self):
         self.x = self.parent.x
         self.width = self.parent.width
+
+        if isinstance(self.node, Element) and self.node.tag == "li":
+            self.list_item = True
+            self.list_item_x = self.x
+            self.x += BULLET_GUTTER
+            self.width -= BULLET_GUTTER
 
         if self.previous:
             self.y = self.previous.y + self.previous.height
@@ -321,6 +332,11 @@ class BlockLayout:
         max_ascent = max([metric["ascent"] for metric in metrics])
         baseline = self.cursor_y + 1.25 * max_ascent
         max_descent = max([metric["descent"] for metric in metrics])
+        if not self.center_line:
+            line_top = baseline - max_ascent
+            line_bottom = baseline + max_descent
+            self.center_line = (line_top + line_bottom) / 2
+
         self.cursor_x = 0
         self.cursor_y = baseline + 1.25 * max_descent
 
@@ -329,7 +345,7 @@ class BlockLayout:
             y = self.y + baseline - font.metrics("ascent")
             self.display_list.append((x, y, word, font))
 
-        self.cursor_x = HSTEP
+        self.cursor_x = 0
         self.line = []
 
     def word(self, word):
@@ -341,14 +357,20 @@ class BlockLayout:
         self.cursor_x += w + font.measure(" ")
 
     def paint(self):
+        assert self.x is not None
+        assert self.y is not None
+        assert self.height is not None
         cmds = []
+        if self.list_item and self.center_line:
+            assert self.list_item_x is not None
+            x1 = self.list_item_x + BULLET_GUTTER / 2
+            y1 = self.y + self.center_line - (BULLET_SIZE / 2)
+            cmds.append(DrawRect(x1, y1, x1 + BULLET_SIZE, y1 + BULLET_SIZE, "black"))
         if isinstance(self.node, Element) and (
             # TEMPORARY STYLES
             self.node.tag == "pre"
             or (self.node.tag == "nav" and self.node.attributes.get("class") == "links")
         ):
-            assert self.x is not None
-            assert self.y is not None
             x2 = self.x + self.width
             y2 = self.y + self.height
             rect = DrawRect(self.x, self.y, x2, y2, "gray")
