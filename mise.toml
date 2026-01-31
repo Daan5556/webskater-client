@@ -39,7 +39,7 @@ run = '''python -m src.browser "data:text/html,
 <ul>
   <li><b>this</b> is the first item</li>
   <li>this is <b>the</b> second item</li>
-  <li>this is <b>the</b> second item</li>
+  <li>this is <b>the</b> third item</li>
 </ul>
 <p>This is a para</p>"
 '''
